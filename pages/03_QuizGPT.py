@@ -57,7 +57,7 @@ def run_quiz_chain(_docs, topic):
     return chain.invoke(_docs)
 
 
-@st.cache_data(show_spinner="Searching Wikipidiea..")
+@st.cache_data(show_spinner="Searching Wikipedia..")
 def wiki_search(term):
     retriever = WikipediaRetriever(top_k_results=5)
     docs = retriever.get_relevant_documents(term)
@@ -75,7 +75,7 @@ questions_prompt = ChatPromptTemplate.from_messages(
             """
             You are a helpful assistant that is role playing as a teacher.
             
-            Based ONLY on the following context make 10 questions to test the user's knowledge about the text.
+            Based ONLY on the following context make 5 questions to test the user's knowledge about the text.
             
             Each question should have 4 answers, three of them must be incorrect and one should be correct.
                 
@@ -256,7 +256,18 @@ if not docs:
         """
     )
 else:
-    start = st.button("Generate Quiz")
-    if start:
-        response = run_quiz_chain(docs, topic if topic else file.name)
-        st.write(response)
+    response = run_quiz_chain(docs, topic if topic else file.name)
+    st.write(response)
+    with st.form("questions_form"):
+        for question in response["questions"]:
+            st.write(question["question"])
+            value = st.radio(
+                "Select an option",
+                [answer["answer"] for answer in question["answers"]],
+                index=None,
+            )
+            if st.write({"answer": value, "correct": True} in question["answers"]):
+                st.success("Correct!")
+            elif value is not None:
+                st.error("Wrong")
+        button = st.form_submit_button()
