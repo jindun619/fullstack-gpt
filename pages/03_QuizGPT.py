@@ -18,6 +18,7 @@ from langchain.schema import BaseOutputParser
 class JsonOutputParser(BaseOutputParser):
     def parse(self, text):
         text = text.replace("```", "").replace("json", "")
+        st.write(f"text = {text}")
         return json.loads(text)
 
 
@@ -75,7 +76,7 @@ questions_prompt = ChatPromptTemplate.from_messages(
             """
             You are a helpful assistant that is role playing as a teacher.
             
-            Based ONLY on the following context make 5 questions to test the user's knowledge about the text.
+            Based ONLY on the following context make 3 questions to test the user's knowledge about the text.
             
             Each question should have 4 answers, three of them must be incorrect and one should be correct.
                 
@@ -257,7 +258,6 @@ if not docs:
     )
 else:
     response = run_quiz_chain(docs, topic if topic else file.name)
-    st.write(response)
     with st.form("questions_form"):
         for question in response["questions"]:
             st.write(question["question"])
@@ -266,7 +266,7 @@ else:
                 [answer["answer"] for answer in question["answers"]],
                 index=None,
             )
-            if st.write({"answer": value, "correct": True} in question["answers"]):
+            if {"answer": value, "correct": True} in question["answers"]:
                 st.success("Correct!")
             elif value is not None:
                 st.error("Wrong")
